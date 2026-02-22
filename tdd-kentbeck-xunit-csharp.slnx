@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/Build/">
     <File Path=".gitignore" />
+    <File Path="README.md" />
   </Folder>
   <Project Path="tdd-kentbeck-xunit-csharp/tdd-kentbeck-xunit-csharp.csproj" />
 </Solution>
