@@ -1,11 +1,11 @@
 ﻿using System.Reflection;
 
-new TestCaseTest("TestRunning").Run();
-new TestCaseTest("TestSetUp").Run();
+new TestCaseTest("TestTemplateMethod").Run();
 
 public class TestCase(string name)
 {
     public virtual void SetUp(){ }
+    public virtual void TearDown() { }
     public void Run()
     {
         SetUp();
@@ -14,6 +14,7 @@ public class TestCase(string name)
             BindingFlags.Public | 
             BindingFlags.NonPublic);
         method.Invoke(this, null);
+        TearDown();
     }
     // This helper method is basically simplified replication of what Python 'assert' does.
     // C#'s Debug.Assert doesn't suit us since it doesn't throw an exception but just reports an error.
@@ -27,32 +28,28 @@ public class TestCase(string name)
 
 public class TestCaseTest(string name) : TestCase(name)
 {
-    private WasRun _test;
-
-    public override void SetUp() => _test = new WasRun("TestMethod");
-    public void TestRunning()
+    public void TestTemplateMethod()
     {
-        _test.Run();
-        Assert(_test.wasRun);
-    }
-    public void TestSetUp()
-    {
-        _test.Run();
-        Assert(_test.WasSetUp);
+        var test = new WasRun("TestMethod");
+        test.Run();
+        Assert("SetUp TestMethod TearDown " == test.Log);
     }
 }
 
 public class WasRun(string name) : TestCase(name)
 {
-    public bool wasRun { get; private set; }
-    public bool WasSetUp { get; private set; }
+    public string Log { get; private set; }
 
     public override void SetUp()
     {
-        WasSetUp = true;
+        Log = "SetUp ";
+    }
+    public override void TearDown()
+    {
+        Log += "TearDown ";
     }
     public void TestMethod()
     {
-        wasRun = true;
+        Log += "TestMethod ";
     }
 }
