@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/Build/">
+    <File Path=".gitignore" />
+  </Folder>
+  <Project Path="tdd-kentbeck-xunit-csharp/tdd-kentbeck-xunit-csharp.csproj" />
+</Solution>
