@@ -1,9 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
 
-new TestCaseTest("TestTemplateMethod").Run().Summary();
-new TestCaseTest("TestResult").Run().Summary();
-new TestCaseTest("TestFailedResult").Run().Summary();
+Console.WriteLine(new TestCaseTest("TestTemplateMethod").Run().Summary());
+Console.WriteLine(new TestCaseTest("TestResult").Run().Summary());
+Console.WriteLine(new TestCaseTest("TestFailedResult").Run().Summary());
+Console.WriteLine(new TestCaseTest("TestFailedResultFormatting").Run().Summary());
+Console.WriteLine(new TestCaseTest("TestFailedSetup").Run().Summary());
 
 public class TestCase(string name)
 {
@@ -14,11 +16,16 @@ public class TestCase(string name)
         var result = new TestResult();
         result.TestStarted();
         SetUp();
-        var method = GetType().GetMethod(name, 
-            BindingFlags.Instance | 
-            BindingFlags.Public | 
-            BindingFlags.NonPublic);
-        method.Invoke(this, null);
+        try {
+            var method = GetType().GetMethod(name, 
+                BindingFlags.Instance | 
+                BindingFlags.Public | 
+                BindingFlags.NonPublic);
+            method.Invoke(this, null);
+        }
+        catch (Exception e) {
+           result.TestFailed();
+        }
         TearDown();
         return result;
     }
@@ -39,15 +46,20 @@ public class TestResult
         RunCount = 0;
     }
     private int RunCount { get; set; }
+    private int ErrorCount { get; set; }
 
     public void TestStarted()
     {
         RunCount++;
     }
+    public void TestFailed()
+    {
+        ErrorCount++;
+    }
 
     public string Summary()
     {
-        return $"{RunCount} run, 0 failed";
+        return $"{RunCount} run, {ErrorCount} failed";
     }
 }
 
@@ -71,6 +83,19 @@ public class TestCaseTest(string name) : TestCase(name)
         var result = test.Run();
         Assert("1 run, 1 failed" == result.Summary());
     }
+    public void TestFailedResultFormatting()
+    {
+        var result = new TestResult();
+        result.TestStarted();
+        result.TestFailed();
+        Assert("1 run, 1 failed" == result.Summary());
+    }
+    public void TestFailedSetup()
+    {
+        var test = new WasRunBrokenSetup("TestMethod");
+        var result = test.Run();
+        Assert("1 run, 1 failed" == result.Summary());
+    }
 }
 
 public class WasRun(string name) : TestCase(name)
@@ -90,6 +115,14 @@ public class WasRun(string name) : TestCase(name)
         Log += "TestMethod ";
     }
     public void TestBrokenMethod()
+    {
+        throw new Exception();
+    }
+}
+
+public class WasRunBrokenSetup(string name): TestCase(name)
+{
+    public override void SetUp()
     {
         throw new Exception();
     }
