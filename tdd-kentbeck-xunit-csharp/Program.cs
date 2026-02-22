@@ -1,23 +1,14 @@
 ﻿using System.Reflection;
 
 new TestCaseTest("TestRunning").Run();
-
-public class TestCaseTest(string name) : TestCase(name)
-{
-    public void TestRunning()
-    {
-        var test = new WasRun("TestMethod");
-        
-        Assert(!test.wasRun);
-        test.Run();
-        Assert(test.wasRun);
-    }
-}
+new TestCaseTest("TestSetUp").Run();
 
 public class TestCase(string name)
 {
+    public virtual void SetUp(){ }
     public void Run()
     {
+        SetUp();
         var method = GetType().GetMethod(name, 
             BindingFlags.Instance | 
             BindingFlags.Public | 
@@ -34,10 +25,32 @@ public class TestCase(string name)
     }
 }
 
+public class TestCaseTest(string name) : TestCase(name)
+{
+    private WasRun _test;
+
+    public override void SetUp() => _test = new WasRun("TestMethod");
+    public void TestRunning()
+    {
+        _test.Run();
+        Assert(_test.wasRun);
+    }
+    public void TestSetUp()
+    {
+        _test.Run();
+        Assert(_test.WasSetUp);
+    }
+}
+
 public class WasRun(string name) : TestCase(name)
 {
-    public bool wasRun { get; private set; } 
+    public bool wasRun { get; private set; }
+    public bool WasSetUp { get; private set; }
 
+    public override void SetUp()
+    {
+        WasSetUp = true;
+    }
     public void TestMethod()
     {
         wasRun = true;
